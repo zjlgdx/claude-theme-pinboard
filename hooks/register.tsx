@@ -108,7 +108,8 @@ export const register: Register = on => {
 
     return (
       <Box flexDirection="row" gap="sm" marginTop="xs" marginBottom="xs">
-        <Box paddingTop="lg">
+        {/* Kept at full width: an image may shrink to nothing in a flex row. */}
+        <Box paddingTop="lg" flexShrink={0}>
           <Svg source={doodle(seed)} alt="doodle" width={28} height={28} />
         </Box>
         <Box flexDirection="column" flexGrow={1} flexShrink={1}>
