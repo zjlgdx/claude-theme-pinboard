@@ -10,6 +10,16 @@ A hand-made look for Claude's desktop and mobile apps. The conversation sits on 
 | --- | --- | --- |
 | ![Pinboard in light mode](docs/light.jpg) | ![Pinboard in dark mode](docs/dark.jpg) | ![String lights running while Claude works](docs/working.jpg) |
 
+## In the terminal
+
+The terminal draws no backdrop, so Pinboard also ships two color themes for the Claude Code terminal, from the same board: rust and clay for Claude, ink blue for prompts and links, pin red around shell commands, and your messages on sticky-note yellow.
+
+| Pinboard · Day (light terminals) | Pinboard · Night (dark terminals) |
+| --- | --- |
+| ![Pinboard Day terminal theme](docs/terminal-day.jpg) | ![Pinboard Night terminal theme](docs/terminal-night.jpg) |
+
+After installing, run `/theme` in a terminal session and pick **Pinboard · Day** or **Pinboard · Night**.
+
 ## Install
 
 At the prompt of a terminal session:

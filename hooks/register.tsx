@@ -61,11 +61,9 @@ export const register: Register = on => {
     if (unpainted !== undefined) {
       $.ui.toast(unpainted)
     }
-    const set = await $.theme.set(LOOK)
-
-    if (!set.isDrawn) {
-      $.ui.status(set.reason)
-    }
+    // A terminal draws no look: the theme stands and draws once the desktop
+    // or mobile app attaches, so there is nothing to say here.
+    await $.theme.set(LOOK)
 
     return next(e)
   })
