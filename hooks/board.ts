@@ -1,3 +1,4 @@
+import { GLYPHS } from './glyphs'
 // The pinboard: a cork board of pinned paper scraps along both edges of the
 // window, under a string of small lights. By day the lights are unlit; at
 // night a lamp warms the board and the lights glow. While Claude works the
@@ -34,8 +35,45 @@ const random = (seed: number) => {
 
 const r1 = (v: number) => Math.round(v * 10) / 10
 
-const HAND = `font-family:'Bradley Hand','Noteworthy','Chalkboard SE','Segoe Print','Comic Sans MS',cursive`
-const TYPE = `font-family:'American Typewriter','Courier New',ui-monospace,monospace`
+// Pinboard's own pens (fontkit/): a ballpoint for notes, a chisel marker for
+// the sticky note, the polaroid and the tag, a typewriter for printed paper.
+// The desktop won't load a font inside a backdrop, so each label is drawn as
+// outlines: every letter once in <defs>, placed with <use> at the font's own
+// advances and kerning. GLYPHS is in units of 1/200 em, y down.
+const UNIT = 200
+const TEXT = /<text ([^>]*class="(hand|mk|type)[^"]*"[^>]*)>([^<]+)<\/text>/g
+
+/** The board's labels turned into outlines, and the letters they use. */
+const outline = (svg: string) => {
+  const used = new Map<string, string>()
+  const body = svg.replace(TEXT, (_, attrs: string, pen: keyof typeof GLYPHS, words: string) => {
+    const a = Object.fromEntries([...attrs.matchAll(/([\w-]+)="([^"]*)"/g)].map(([, k, v]) => [k, v]))
+    const { adv, kern, d } = GLYPHS[pen]
+    const scale = Number(a['font-size']) / UNIT
+    const track = Number(a['letter-spacing'] ?? 0) / scale
+    let x = 0
+    const uses: string[] = []
+    const chars = [...words]
+    chars.forEach((ch, i) => {
+      const path = d[ch]
+      if (path) {
+        const id = `${pen[0]}${ch.codePointAt(0)!.toString(36)}`
+        used.set(id, path)
+        uses.push(`<use href="#${id}" x="${r1(x)}"/>`)
+      }
+      x += (adv[ch] ?? 0) + (kern[ch + (chars[i + 1] ?? '')] ?? 0) + track
+    })
+    const width = x - track
+    const shift = a['text-anchor'] === 'middle' ? -width / 2 : 0
+    const place = `${a.transform ?? ''} translate(${a.x ?? 0} ${a.y ?? 0}) scale(${r1(scale * 1e4) / 1e4})${shift ? ` translate(${r1(shift)} 0)` : ''}`
+    const fill = a.fill ? ` fill="${a.fill}"` : ''
+
+    return `<g class="${a.class}"${fill} transform="${place.trim()}">${uses.join('')}</g>`
+  })
+  const defs = [...used].map(([id, d]) => `<path id="${id}" d="${d}"/>`).join('')
+
+  return body.replace('<defs>', `<defs>${defs}`)
+}
 
 const LIGHT = {
   cork: '#bb8d5e', g1: '#d1a372', g2: '#9c7147', vig: '0.16',
@@ -152,7 +190,7 @@ const stamps = (x: number, y: number) => {
     return (
       `<g transform="translate(${sx} ${sy}) rotate(${rot} 52 62)" filter="url(#sh)"><rect width="104" height="124" fill="#fbf7ee" mask="url(#perf)"/>` +
       `<rect x="9" y="9" width="86" height="88" fill="${bg}"/><g transform="translate(52 53)">${art}</g>` +
-      `<text x="52" y="115" text-anchor="middle" class="type" font-size="10.5" fill="#5a5048" letter-spacing="1">${name} · 58</text></g>`
+      `<text x="52" y="115" text-anchor="middle" class="type" font-size="10.5" fill="#5a5048">${name} · 58</text></g>`
     )
   }).join('')
   const postmark =
@@ -201,7 +239,7 @@ const LEFT =
   `<path d="M52 224 L226 224 L196 266 L84 266 Z"/><path d="M52 224 L84 266" stroke-dasharray="4 4"/>` +
   `<path d="M44 292 L234 292 M44 284 L44 300 M234 284 L234 300"/><path d="M44 292 l9 -4 m-9 4 l9 4 M234 292 l-9 -4 m9 4 l-9 4"/></g>` +
   `<text x="118" y="316" class="hand pencil" font-size="16">14 cm</text>` +
-  `<text x="178" y="62" class="hand pencil" font-size="15" transform="rotate(8 178 62)">a sail?</text></g>` +
+  `<text x="178" y="62" class="hand pencil" font-size="17" transform="rotate(8 178 62)">a sail?</text></g>` +
   tape(128, 78, 90, 25, 4, '#9fd0b6', 11) +
   // polaroid: a cabin under the moon
   `<g transform="translate(44 476) rotate(4)" filter="url(#sh)">` +
@@ -212,7 +250,7 @@ const LEFT =
   `<path d="M15 184 Q 66 142 112 166 T 221 150 L221 215 L15 215 Z" fill="#1a2440"/>` +
   `<path d="M15 201 Q 84 178 150 193 T 221 188 L221 215 L15 215 Z" fill="#131b31"/>` +
   `<path d="M68 180 l17 -13 l17 13 v15 h-34 Z" fill="#0f1628"/><rect class="cabin" x="80" y="182" width="8" height="8"/>` +
-  `<text x="26" y="254" class="hand ink" font-size="21">night shift</text></g>` +
+  `<text x="26" y="254" class="mk ink" font-size="21">night shift</text></g>` +
   tape(26, 476, 72, 23, -38, '#f2a7b5', 4) +
   pin(166, 480, '#e3b23c') +
   // fern sprig, under the card
@@ -221,7 +259,7 @@ const LEFT =
   `<g transform="translate(150 768) rotate(-3)" filter="url(#sh)">` +
   `<rect width="214" height="166" class="card"/><path d="M0 40 H214" stroke="#e08a8a" stroke-width="1.4"/>` +
   [62, 87, 112, 137].map(y => `<path d="M0 ${y} H214" stroke="#a8c4dc" stroke-width="1"/>`).join('') +
-  `<text x="16" y="30" class="hand ink" font-size="22">today</text>` +
+  `<text x="16" y="30" class="mk ink" font-size="22">today</text>` +
   ([['read the code', true], ['think it through', true], ['make it lovely', false]] as const)
     .map(([words, done], i) =>
       `<rect x="16" y="${47 + i * 25}" width="12" height="12" fill="none" class="penS"/>` +
@@ -235,9 +273,9 @@ const LEFT =
   `<path d="M0 0 C -6 24 6 40 0 66" class="twine"/>` +
   `<g transform="rotate(-8 0 70)" filter="url(#sh)"><path d="M-40 90 L-20 66 L20 66 L40 90 L40 222 L-40 222 Z" class="kraft"/>` +
   `<circle cy="80" r="5.5" class="hole"/><circle cy="80" r="8.5" fill="none" class="ring"/>` +
-  `<text y="130" text-anchor="middle" class="hand ink" font-size="21">made</text>` +
-  `<text y="158" text-anchor="middle" class="hand ink" font-size="21">slowly</text>` +
-  `<text y="190" text-anchor="middle" class="hand ink2" font-size="14">with care</text></g>` +
+  `<text y="130" text-anchor="middle" class="mk ink" font-size="21">made</text>` +
+  `<text y="158" text-anchor="middle" class="mk ink" font-size="21">slowly</text>` +
+  `<text y="190" text-anchor="middle" class="hand ink2" font-size="16">with care</text></g>` +
   `</g>${pin(0, 0, '#c8423b')}</g>` +
   pin(266, 772, '#3f6fb3')
 
@@ -246,20 +284,20 @@ const RIGHT =
   // sticky note and its clip
   `<g transform="translate(300 92) rotate(4)" filter="url(#sh)">` +
   `<path d="M0 0 H200 V172 L176 196 H0 Z" class="sticky"/><path d="M200 172 L176 196 L180 176 Z" class="stickyFold"/>` +
-  `<text x="18" y="42" class="hand ink" font-size="22">remember:</text>` +
+  `<text x="18" y="42" class="mk ink" font-size="22">remember:</text>` +
   `<path d="M18 50 q 50 6 104 -2" class="penS" fill="none"/>` +
-  `<text x="18" y="88" class="hand ink" font-size="20">small steps,</text>` +
-  `<text x="18" y="120" class="hand ink" font-size="20">big picture.</text>` +
+  `<text x="18" y="88" class="mk ink" font-size="20">small steps,</text>` +
+  `<text x="18" y="120" class="mk ink" font-size="20">big picture.</text>` +
   `<text x="116" y="162" class="hand ink2" font-size="15">— me</text></g>` +
   `<path d="M336 76 v56 a10 10 0 0 0 20 0 v-62 a15 15 0 0 0 -30 0 v54" class="clip" transform="rotate(4 336 76)"/>` +
   // train ticket
   `<g transform="translate(196 340) rotate(-6)" filter="url(#sh)">` +
   `<path d="M0 0 H300 V48 a10 10 0 0 0 0 20 V128 H0 V68 a10 10 0 0 0 0 -20 Z" class="ticket"/>` +
   `<path d="M228 8 V120" stroke="#fff" stroke-opacity=".7" stroke-width="2" stroke-dasharray="3 5"/>` +
-  `<text x="20" y="30" class="type tk" font-size="12" letter-spacing="3">OUTBOUND · SINGLE</text>` +
+  `<text x="20" y="30" class="type tk" font-size="12" letter-spacing="1">OUTBOUND · SINGLE</text>` +
   `<text x="20" y="76" class="hand tkInk" font-size="33">platform 2</text>` +
-  `<text x="20" y="107" class="type tk" font-size="12.5" letter-spacing="1">07:42 · coach c · seat 14</text>` +
-  `<text class="type tk" font-size="12" letter-spacing="2" transform="translate(268 26) rotate(90)">No. 0417</text></g>` +
+  `<text x="20" y="107" class="type tk" font-size="12">07:42 · coach c · seat 14</text>` +
+  `<text class="type tk" font-size="12" transform="translate(268 26) rotate(90)">No. 0417</text></g>` +
   pin(226, 350, '#4f8a5b') +
   // stamps
   stamps(296, 560) +
@@ -267,7 +305,7 @@ const RIGHT =
   `<g transform="translate(176 870) rotate(-7)" filter="url(#sh)">` +
   `<rect width="290" height="82" class="card"/>` +
   ([['#e9dcc3', 'oat'], ['#c98b62', 'clay'], ['#a4542f', 'rust'], ['#6e7f4d', 'moss'], ['#2f3b4c', 'ink']] as const)
-    .map(([c, name], i) => `<rect x="${8 + i * 56}" y="8" width="50" height="48" fill="${c}"/><text x="${10 + i * 56}" y="72" class="type pencil" font-size="10" letter-spacing="1">${name}</text>`)
+    .map(([c, name], i) => `<rect x="${8 + i * 56}" y="8" width="50" height="48" fill="${c}"/><text x="${10 + i * 56}" y="72" class="type pencil" font-size="10.5">${name}</text>`)
     .join('') +
   `</g>` +
   tape(300, 858, 64, 21, 4, '#f3d27a', 21) +
@@ -385,7 +423,7 @@ const STYLE_FIXED =
   `.paperBody{fill:url(#paperG);stroke:var(--fringe);stroke-width:2.4}.pp{stop-color:var(--paper)}.pe{stop-color:var(--paperEdge)}.fiber{stroke:var(--fiber);opacity:.35}` +
   `.cork{fill:var(--cork)}.g1{fill:var(--g1);opacity:.55}.g2{fill:var(--g2);opacity:.5}` +
   `.sheet{fill:#f7f6f1}.photo{fill:#fbf8f1}.card{fill:#fdfcf6}.kraft{fill:#c99c63}.sticky{fill:#f4dc84}.stickyFold{fill:#d9bd60}.ticket{fill:#7fb0a0}` +
-  `.hand{${HAND}}.type{${TYPE}}.ink{fill:#2c3a55}.ink2{fill:#5a6377}.pencil{fill:#5d6670}.tk{fill:#f4f1e6}.tkInk{fill:#1f3b36}` +
+  `.ink{fill:#2c3a55}.ink2{fill:#5a6377}.pencil{fill:#5d6670}.tk{fill:#f4f1e6}.tkInk{fill:#1f3b36}` +
   `.pen{stroke:#2c3a55}.penS{stroke:#2c3a55;stroke-width:1.4}.tick{fill:none;stroke:#c0392b;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}` +
   `.twine{fill:none;stroke:#8b6b45;stroke-width:1.6}.hole{fill:var(--cork)}.ring{stroke:#a88050;stroke-width:2}` +
   `.string{fill:none;stroke:#b8352e;stroke-width:1.7;opacity:.9}.clip{fill:none;stroke:#9aa3ab;stroke-width:2.6;stroke-linecap:round}` +
@@ -415,7 +453,7 @@ export const drawBoard = (live: Live) => {
   const band = (cls: string, content: string) =>
     cls === 'L' ? `<g class="L">${content}</g>` : `<g class="R" transform="translate(${W - BAND} 0)">${content}</g>`
 
-  return (
+  return outline(
     // The root is the backdrop's own box in points; the board inside it is sliced.
     `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">` +
     `<style>${style}</style><defs>${DEFS}</defs>` +

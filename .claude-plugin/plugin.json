@@ -1,6 +1,6 @@
 {
   "name": "pinboard",
-  "version": "0.4.1",
+  "version": "0.5.1",
   "description": "Pinboard: a hand-made cork board of pinned paper scraps behind the conversation, cream by day and lamp-lit by night, with string lights that run while Claude works. Also ships matching Day and Night themes for the Claude Code terminal.",
   "types": "./types/index.d.ts"
 }
