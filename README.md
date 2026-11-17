@@ -60,3 +60,7 @@ In the desktop app, where `/plugin` does not run: click + next to the prompt box
 - With "Reduce motion" on, the board stands still.
 - The art keeps to two bands pinned to the left and right edges, so the words in the middle stay clear; on narrow windows the bands slide in and fade.
 - A theme replaces any other mod's theme, so use one theme mod at a time.
+
+## Licence
+
+MIT. See [LICENSE](LICENSE).
