@@ -1,24 +1,35 @@
 # Pinboard
 
-A hand-made look for Claude's desktop and mobile apps. The conversation sits on frosted cream paper in the middle of a cork board, and the edges of the board hold pinned scraps: a paper-boat plan on graph paper, a polaroid of a cabin under the moon, a hanging kraft tag, an index card, a sticky note, a train ticket, postage stamps, paint swatches, a fern and some lavender.
+A hand-made look for Claude. The conversation is a strip of cream paper laid on a cork board, and the edges of the board hold pinned scraps: a paper-boat plan on graph paper, a polaroid of a cabin under the moon, a hanging kraft tag, an index card, a sticky note, a train ticket, postage stamps, paint swatches, a fern and some lavender.
 
+- **Replies on paper**: each block of Claude's reply sits on a torn kraft card held by two strips of washi tape, and each run of tool calls is a strip of tape under a red pin.
 - **Light mode**: warm cork and cream paper, ink-blue accents.
-- **Dark mode**: the same board under a desk lamp, with a warm veil and string lights that softly twinkle.
+- **Dark mode**: the same board under a desk lamp, with string lights that softly twinkle.
 - **While Claude works**: the string lights come on and run along the wire, and the tag sways a little faster. They settle when the turn ends.
 
-| Light | Dark | While Claude works |
-| --- | --- | --- |
-| ![Pinboard in light mode](docs/light.jpg) | ![Pinboard in dark mode](docs/dark.jpg) | ![String lights running while Claude works](docs/working.jpg) |
+| Light | Dark |
+| --- | --- |
+| ![Pinboard in light mode](docs/light.jpg) | ![Pinboard in dark mode](docs/dark.jpg) |
+
+The board and the paper cards draw in the desktop app; the phone app draws the board.
 
 ## In the terminal
 
-The terminal draws no backdrop, so Pinboard also ships two color themes for the Claude Code terminal, from the same board: rust and clay for Claude, ink blue for prompts and links, pin red around shell commands, and your messages on sticky-note yellow.
+A terminal can't draw the board, so Pinboard brings it two ways.
 
-| Pinboard · Day (light terminals) | Pinboard · Night (dark terminals) |
+**Claude Code theme.** Two color themes from the same board: rust and clay for Claude, ink blue for prompts and links, pin red around shell commands, and your messages on sticky-note yellow. After installing, run `/theme` in a terminal session and pick **Pinboard · Day** or **Pinboard · Night**.
+
+**iTerm2 profile.** A Claude Code theme can't change the terminal's own background, so `iterm/` holds two iTerm2 profiles with Pinboard's colors and a faded board behind the text. From a clone of this repository:
+
+```
+sh iterm/install.sh
+```
+
+Then in iTerm2 choose Profiles > **Pinboard Night** (or **Pinboard Day**). The profiles inherit your "Default" profile's font and settings. For colors only, double-click `iterm/Pinboard Night.itermcolors` and pick it under Settings > Profiles > Colors > Color Presets.
+
+| Night | Day |
 | --- | --- |
-| ![Pinboard Day terminal theme](docs/terminal-day.jpg) | ![Pinboard Night terminal theme](docs/terminal-night.jpg) |
-
-After installing, run `/theme` in a terminal session and pick **Pinboard · Day** or **Pinboard · Night**.
+| ![Pinboard Night in the terminal](docs/terminal-night.jpg) | ![Pinboard Day in the terminal](docs/terminal-day.jpg) |
 
 ## Install
 

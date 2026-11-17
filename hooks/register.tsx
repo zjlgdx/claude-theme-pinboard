@@ -3,6 +3,7 @@ import type { EngineInterface, Register, ThemeSetArgs } from 'claude-code'
 
 import { ALT, drawBoard } from './board'
 import { makeColors } from './make-colors.js'
+import { CARD, cardCorner, cardFoot, cardTopMid, PIN, TAPE_BAND } from './paper'
 
 const PLUGIN = 'pinboard'
 const SCENE = 'cork'
@@ -42,10 +43,22 @@ const { theme, problems } = makeColors({
   },
 })
 
-// Frosted enough to read on, clear enough to see the board through it.
+// The column is a strip of cream paper laid on the board: nearly opaque, so
+// it reads as paper and not as frosted cork.
 const LOOK: ThemeSetArgs = {
   colors: theme,
-  backdrop: { scene: SCENE, glass: { blur: 14, opacity: 0.62 } },
+  backdrop: { scene: SCENE, glass: { blur: 6, opacity: 0.9 } },
+}
+
+// Each message tears its card the same way every time it is drawn.
+const seedOf = (id: string) => {
+  let h = 2166136261
+
+  for (let i = 0; i < id.length; i += 1) {
+    h = Math.imul(h ^ id.charCodeAt(i), 16777619)
+  }
+
+  return (h >>> 0) % 100000
 }
 
 const working = async ($: EngineInterface, isBusy: boolean) => {
@@ -78,6 +91,53 @@ export const register: Register = on => {
     await working($, false)
 
     return next(e)
+  })
+
+  // Each block of a reply on a torn kraft card, taped at both corners. The
+  // desktop app only: the terminal draws no images.
+  on('ui.render', { component: 'AssistantMessage', plugin: '*' }, async ($, e, next) => {
+    if (e.surface !== 'desktop') {
+      return next(e)
+    }
+    const { Box, Svg } = $.ui.resolve(e)
+    const seed = seedOf(e.requestId)
+    const reply = await next(e)
+
+    return (
+      <Box flexDirection="column" marginTop="xs" marginBottom="xs">
+        <Box flexDirection="row">
+          <Svg source={cardCorner(seed, 'left')} alt="tape" width={84} height={24} />
+          <Box flexGrow={1} flexShrink={1} overflow="hidden">
+            <Svg source={cardTopMid(seed)} alt="torn paper" height={24} />
+          </Box>
+          <Svg source={cardCorner(seed, 'right')} alt="tape" width={84} height={24} />
+        </Box>
+        <Box backgroundColor={CARD} paddingX="lg" paddingY="xs">
+          {reply}
+        </Box>
+        <Box overflow="hidden">
+          <Svg source={cardFoot(seed)} alt="torn paper" height={14} />
+        </Box>
+      </Box>
+    )
+  })
+
+  // A run of tool calls: its count line on a strip of tape, under a pin.
+  on('ui.render', { component: 'ToolGroup', plugin: '*' }, async ($, e, next) => {
+    if (e.surface !== 'desktop' || e.props.isExpanded) {
+      return next(e)
+    }
+    const { Box, Svg } = $.ui.resolve(e)
+    const line = await next(e)
+
+    return (
+      <Box flexDirection="row" alignItems="center" gap="sm">
+        <Svg source={PIN} alt="pin" width={16} height={16} />
+        <Box backgroundColor={TAPE_BAND} paddingX="sm" flexShrink={1}>
+          {line}
+        </Box>
+      </Box>
+    )
   })
 
   on('ui.render', { component: 'Backdrop' }, async ($, e, next) => {
