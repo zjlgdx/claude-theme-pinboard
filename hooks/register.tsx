@@ -3,7 +3,7 @@ import type { EngineInterface, Register, ThemeSetArgs } from 'claude-code'
 
 import { ALT, drawBoard } from './board'
 import { makeColors } from './make-colors.js'
-import { CARD, cardCorner, cardFoot, cardTopMid, PIN, TAPE_BAND } from './paper'
+import { cardColor, cardCorner, cardFoot, cardTopMid, doodle, pin, tapeBand } from './paper'
 
 const PLUGIN = 'pinboard'
 const SCENE = 'cork'
@@ -43,12 +43,14 @@ const { theme, problems } = makeColors({
   },
 })
 
-// The app frosts a column under the words with its cards' color: kraft
-// cream rather than white, thin enough that the cork's grain shows through,
-// so the column reads as paper on the board and not as a white panel.
+// The board draws a torn paper strip down the middle of the window, as the
+// words sit when the sidebar is closed. The app's own frosted column follows
+// the words wherever they are, so it stays as a thin safety tint: enough to
+// keep them readable when a sidebar or pane moves them off the strip, little
+// enough that its soft edge doesn't fog the strip's torn one.
 const LOOK: ThemeSetArgs = {
   colors: theme,
-  backdrop: { scene: SCENE, glass: { blur: 2, opacity: 0.8 } },
+  backdrop: { scene: SCENE, glass: { blur: 0, opacity: 0.25 } },
 }
 
 // Each message tears its card the same way every time it is drawn.
@@ -94,8 +96,8 @@ export const register: Register = on => {
     return next(e)
   })
 
-  // Each block of a reply on a torn kraft card, taped at both corners. The
-  // desktop app only: the terminal draws no images.
+  // Each block of a reply on its own torn scrap, taped at both corners, with
+  // an ink doodle beside it. The desktop app only: the terminal draws no images.
   on('ui.render', { component: 'AssistantMessage', plugin: '*' }, async ($, e, next) => {
     if (e.surface !== 'desktop') {
       return next(e)
@@ -105,7 +107,11 @@ export const register: Register = on => {
     const reply = await next(e)
 
     return (
-      <Box flexDirection="column" marginTop="xs" marginBottom="xs">
+      <Box flexDirection="row" gap="sm" marginTop="xs" marginBottom="xs">
+        <Box paddingTop="lg">
+          <Svg source={doodle(seed)} alt="doodle" width={28} height={28} />
+        </Box>
+        <Box flexDirection="column" flexGrow={1} flexShrink={1}>
         <Box flexDirection="row">
           <Svg source={cardCorner(seed, 'left')} alt="tape" width={84} height={24} />
           <Box flexGrow={1} flexShrink={1} overflow="hidden">
@@ -113,28 +119,31 @@ export const register: Register = on => {
           </Box>
           <Svg source={cardCorner(seed, 'right')} alt="tape" width={84} height={24} />
         </Box>
-        <Box backgroundColor={CARD} paddingX="lg" paddingY="xs">
+        <Box backgroundColor={cardColor(seed)} paddingX="lg" paddingY="xs">
           {reply}
         </Box>
         <Box overflow="hidden">
           <Svg source={cardFoot(seed)} alt="torn paper" height={14} />
         </Box>
+        </Box>
       </Box>
     )
   })
 
-  // A run of tool calls: its count line on a strip of tape, under a pin.
+  // A run of tool calls: its count line on a strip of tape, under a pin, both
+  // in a color the run's id picks.
   on('ui.render', { component: 'ToolGroup', plugin: '*' }, async ($, e, next) => {
     if (e.surface !== 'desktop' || e.props.isExpanded) {
       return next(e)
     }
     const { Box, Svg } = $.ui.resolve(e)
+    const seed = seedOf(e.requestId)
     const line = await next(e)
 
     return (
-      <Box flexDirection="row" alignItems="center" gap="sm">
-        <Svg source={PIN} alt="pin" width={16} height={16} />
-        <Box backgroundColor={TAPE_BAND} paddingX="sm" flexShrink={1}>
+      <Box flexDirection="row" alignItems="center" gap="sm" paddingLeft="xl">
+        <Svg source={pin(seed)} alt="pin" width={16} height={16} />
+        <Box backgroundColor={tapeBand(seed)} paddingX="sm" flexShrink={1}>
           {line}
         </Box>
       </Box>

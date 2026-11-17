@@ -5,7 +5,7 @@
 //
 // One SVG for both modes: colors are CSS variables switched by
 // prefers-color-scheme. The art keeps to two bands, one pinned to each edge,
-// so the conversation in the middle stays clear.
+// and the conversation sits on a strip of torn paper in the middle.
 
 const W = 1600
 const H = 1000
@@ -39,10 +39,12 @@ const TYPE = `font-family:'American Typewriter','Courier New',ui-monospace,monos
 
 const LIGHT = {
   cork: '#bb8d5e', g1: '#d1a372', g2: '#9c7147', vig: '0.16',
+  paper: '#f5ecda', paperEdge: '#e9dcc2', fringe: '#fcf8ee', fiber: '#b89a72', ring: '#8a5a2b', ringOp: '0.13',
   veil: '0', lamp: '0', bulb: '#f1ead6', idle: '0',
 }
 const DARK = {
   cork: '#b88a5c', g1: '#cfa06f', g2: '#9b7047', vig: '0.55',
+  paper: '#2b241d', paperEdge: '#231d17', fringe: '#4a3f33', fiber: '#8a7559', ring: '#c79a63', ringOp: '0.1',
   veil: '0.6', lamp: '0.3', bulb: '#ffd98f', idle: '1',
 }
 
@@ -273,10 +275,98 @@ const RIGHT =
   `<g transform="translate(496 1000) rotate(-6)">${lavender()}</g>` +
   tape(458, 898, 66, 21, -24, '#c7b8e6', 31)
 
+
+// The strip of paper the conversation is written on: torn down both sides,
+// a fixed width in screen points, centred under the words whatever the
+// window's shape. Drawn in points, so it sits outside the sliced board.
+const STRIP_HALF = 410
+const STRIP_TALL = 3200
+
+const tornEdge = (seed: number, x: number, down: boolean) => {
+  const rand = random(seed)
+  const points: string[] = []
+
+  for (let y = -40; y <= STRIP_TALL; y += 7 + rand() * 6) {
+    const notch = rand() < 0.06 ? 4 + rand() * 4 : 0
+    const dx = (rand() - 0.5) * 4 + (x < 0 ? notch : -notch)
+    points.push(`${r1(x + dx)} ${r1(y)}`)
+  }
+
+  return (down ? points : points.reverse()).join(' L')
+}
+
+const STRIP_PATH = `M${tornEdge(7, -STRIP_HALF, true)} L${tornEdge(19, STRIP_HALF, false)} Z`
+
+const FIBERS = (() => {
+  const rand = random(41)
+  let out = ''
+
+  for (let i = 0; i < 46; i += 1) {
+    const x = r1(rand() * 240)
+    const y = r1(rand() * 240)
+    const len = 6 + rand() * 16
+    const a = rand() * Math.PI
+    out += `<path d="M${x} ${y} q${r1(Math.cos(a) * len * 0.5 + 2)} ${r1(Math.sin(a) * len * 0.5 - 2)} ${r1(Math.cos(a) * len)} ${r1(Math.sin(a) * len)}"/>`
+  }
+
+  return out
+})()
+
+const SPECKS = (() => {
+  const rand = random(53)
+  let out = ''
+
+  for (let i = 0; i < 70; i += 1) {
+    out += `<circle cx="${r1(rand() * 240)}" cy="${r1(rand() * 240)}" r="${r1(0.4 + rand() * 0.9)}"/>`
+  }
+
+  return out
+})()
+
+// A strip of washi tape holding the paper to the cork, centred on (x, y).
+const stripTape = (x: number, y: number, rot: number, cls: string, seed: number) => {
+  const rand = random(seed)
+  const w = 118
+  const h = 30
+  const jag = (side: number) =>
+    Array.from({ length: 6 }, (_, i) => `${r1(side === 0 ? rand() * 4 : w - rand() * 4)},${r1((h * i) / 5)}`)
+  const outline = [...jag(0), ...jag(1).reverse()].join(' ')
+
+  return (
+    `<g transform="translate(${x} ${y}) rotate(${rot}) translate(${-w / 2} ${-h / 2})">` +
+    `<polygon points="${outline}" class="washi ${cls}"/>` +
+    `<path d="M6 ${h * 0.3} H${w - 6} M6 ${h * 0.7} H${w - 6}" class="washiLine" stroke-dasharray="3 4"/></g>`
+  )
+}
+
+// A faint ring left by a mug, two arcs that don't quite meet.
+const RING =
+  `<g class="ring2" fill="none" stroke-linecap="round">` +
+  `<path d="M-44 6 A46 44 0 0 1 40 -22" stroke-width="5"/><path d="M44 -6 A46 44 0 0 1 -30 36" stroke-width="3.5"/>` +
+  `<path d="M-40 14 A42 40 0 0 0 -8 41" stroke-width="1.5"/></g>`
+
+const STRIP =
+  `<svg x="50%" y="0" width="1" height="1" overflow="visible">` +
+  `<path d="${STRIP_PATH}" class="paperBody" filter="url(#stripSh)"/>` +
+  `<path d="${STRIP_PATH}" fill="url(#fibers)" opacity=".5"/>` +
+  `<path d="${STRIP_PATH}" fill="url(#specks)"/>` +
+  stripTape(-STRIP_HALF + 8, 58, -38, 'w0', 3) + stripTape(STRIP_HALF - 8, 58, 36, 'w1', 5) +
+  `</svg>` +
+  `<svg x="50%" y="100%" width="1" height="1" overflow="visible">` +
+  `<g transform="translate(${STRIP_HALF - 130} -190) rotate(-14)">${RING}</g>` +
+  stripTape(-STRIP_HALF + 8, -40, 34, 'w2', 7) + stripTape(STRIP_HALF - 8, -40, -32, 'w3', 9) +
+  `</svg>`
+
 const LIGHTS_LEFT = lights([-20, 14, 150, 92, 560, 18], 9, 3, 0)
 const LIGHTS_RIGHT = lights([-20, 22, 300, 98, 560, 8], 9, 8, 9)
 
 const DEFS =
+  `<filter id="stripSh" x="-10%" y="-1%" width="120%" height="102%"><feGaussianBlur in="SourceAlpha" stdDeviation="7"/><feOffset dx="0" dy="3"/>` +
+  `<feComponentTransfer><feFuncA type="linear" slope=".38"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>` +
+  `<linearGradient id="paperG" gradientUnits="userSpaceOnUse" x1="${-STRIP_HALF}" x2="${STRIP_HALF}" y1="0" y2="0">` +
+  `<stop offset="0" class="pe"/><stop offset=".05" class="pp"/><stop offset=".95" class="pp"/><stop offset="1" class="pe"/></linearGradient>` +
+  `<pattern id="specks" width="240" height="240" patternUnits="userSpaceOnUse"><g class="speck">${SPECKS}</g></pattern>` +
+  `<pattern id="fibers" width="240" height="240" patternUnits="userSpaceOnUse"><g fill="none" stroke-width=".8" class="fiber">${FIBERS}</g></pattern>` +
   `<filter id="sh" x="-20%" y="-20%" width="140%" height="150%"><feGaussianBlur in="SourceAlpha" stdDeviation="5"/><feOffset dx="2" dy="6"/>` +
   `<feComponentTransfer><feFuncA type="linear" slope=".28"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>` +
   `<radialGradient id="pinShade" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".25"/><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient>` +
@@ -289,6 +379,10 @@ const DEFS =
   `<radialGradient id="vigG" cx=".5" cy=".5" r=".75"><stop offset=".5" stop-color="#2a1a0c" stop-opacity="0"/><stop offset="1" stop-color="#2a1a0c" stop-opacity="1"/></radialGradient>`
 
 const STYLE_FIXED =
+  `.speck{fill:var(--fiber);opacity:.28}.ring2{stroke:var(--ring);opacity:var(--ringOp)}` +
+  `.washi{opacity:.86}.washiLine{fill:none;stroke:#fff;stroke-width:1;opacity:.35}.w0{fill:#e7cf86}.w1{fill:#efb2ad}.w2{fill:#a8d3bf}.w3{fill:#c5b8e6}` +
+  `@media (prefers-color-scheme:dark){.washi{opacity:.62}}` +
+  `.paperBody{fill:url(#paperG);stroke:var(--fringe);stroke-width:2.4}.pp{stop-color:var(--paper)}.pe{stop-color:var(--paperEdge)}.fiber{stroke:var(--fiber);opacity:.35}` +
   `.cork{fill:var(--cork)}.g1{fill:var(--g1);opacity:.55}.g2{fill:var(--g2);opacity:.5}` +
   `.sheet{fill:#f7f6f1}.photo{fill:#fbf8f1}.card{fill:#fdfcf6}.kraft{fill:#c99c63}.sticky{fill:#f4dc84}.stickyFold{fill:#d9bd60}.ticket{fill:#7fb0a0}` +
   `.hand{${HAND}}.type{${TYPE}}.ink{fill:#2c3a55}.ink2{fill:#5a6377}.pencil{fill:#5d6670}.tk{fill:#f4f1e6}.tkInk{fill:#1f3b36}` +
@@ -322,15 +416,20 @@ export const drawBoard = (live: Live) => {
     cls === 'L' ? `<g class="L">${content}</g>` : `<g class="R" transform="translate(${W - BAND} 0)">${content}</g>`
 
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">` +
+    // The root is the backdrop's own box in points; the board inside it is sliced.
+    `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">` +
     `<style>${style}</style><defs>${DEFS}</defs>` +
+    `<svg width="100%" height="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">` +
     `<rect width="${W}" height="${H}" class="cork"/><rect width="${W}" height="${H}" fill="url(#corkTex)"/>` +
     `<rect width="${W}" height="${H}" fill="url(#vigG)" class="vig"/>` +
     band('L', LEFT) + band('R', RIGHT) +
     // night: a warm veil, the lamp's pool, then the lights above both
     `<rect width="${W}" height="${H}" class="veil"/><rect width="${W}" height="${H}" fill="url(#lampG)" class="lamp"/>` +
+    `</svg>` +
+    STRIP +
+    `<svg width="100%" height="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">` +
     band('L', LIGHTS_LEFT) + band('R', LIGHTS_RIGHT) +
-    `</svg>`
+    `</svg></svg>`
   )
 }
 
