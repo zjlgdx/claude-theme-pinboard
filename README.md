@@ -1,6 +1,6 @@
 # Pinboard
 
-A hand-made look for Claude. The conversation is a strip of cream paper laid on a cork board, and the edges of the board hold pinned scraps: a paper-boat plan on graph paper, a polaroid of a cabin under the moon, a hanging kraft tag, an index card, a sticky note, a train ticket, postage stamps, paint swatches, a fern and some lavender.
+A hand-made look for Claude. The conversation sits on a column of warm kraft-cream paper on a cork board, and the edges of the board hold pinned scraps: a paper-boat plan on graph paper, a polaroid of a cabin under the moon, a hanging kraft tag, an index card, a sticky note, a train ticket, postage stamps, paint swatches, a fern and some lavender.
 
 - **Replies on paper**: each block of Claude's reply sits on a torn kraft card held by two strips of washi tape, and each run of tool calls is a strip of tape under a red pin.
 - **Light mode**: warm cork and cream paper, ink-blue accents.

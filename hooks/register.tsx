@@ -19,9 +19,9 @@ const { theme, problems } = makeColors({
   light: {
     gray: {
       anchors: {
-        'surface-0': '#efe6d4',
-        'surface-1': '#f5eddd',
-        'surface-2': '#faf5ea',
+        'surface-0': '#e9dbc1',
+        'surface-1': '#ecdcc0',
+        'surface-2': '#f4ead7',
         'text-primary': '#2b231b',
         'text-secondary': '#54483a',
         'text-muted': '#6b5e4d',
@@ -32,7 +32,7 @@ const { theme, problems } = makeColors({
     gray: {
       anchors: {
         'surface-0': '#1d1915',
-        'surface-1': '#25201a',
+        'surface-1': '#2a231b',
         'surface-2': '#2c2620',
         'surface-3': '#312a23',
         'text-primary': '#f0e6d4',
@@ -43,11 +43,12 @@ const { theme, problems } = makeColors({
   },
 })
 
-// The column is a strip of cream paper laid on the board: nearly opaque, so
-// it reads as paper and not as frosted cork.
+// The app frosts a column under the words with its cards' color: kraft
+// cream rather than white, thin enough that the cork's grain shows through,
+// so the column reads as paper on the board and not as a white panel.
 const LOOK: ThemeSetArgs = {
   colors: theme,
-  backdrop: { scene: SCENE, glass: { blur: 6, opacity: 0.9 } },
+  backdrop: { scene: SCENE, glass: { blur: 2, opacity: 0.8 } },
 }
 
 // Each message tears its card the same way every time it is drawn.
