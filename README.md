@@ -3,7 +3,7 @@
 A hand-made look for Claude. The conversation is written on a torn strip of cream paper taped to a cork board, and the edges of the board hold pinned scraps: a paper-boat plan on graph paper, a polaroid of a cabin under the moon, a hanging kraft tag, an index card, a sticky note, a train ticket, postage stamps, paint swatches, a fern and some lavender.
 
 - **A scrapbook of replies**: each block of Claude's reply sits on its own torn scrap (kraft, manila, rose or sage) held by two strips of washi tape, with a small ink doodle beside it: a paper boat, a crane, a kite, a star or a leaf. Each run of tool calls is a strip of tape under a colored pin. A message's paper, tape and doodle are the same every time it is drawn.
-- **Its own lettering**: the notes on the board are written in three pens drawn for Pinboard: a leaning ballpoint, a chisel marker and a typewriter with an inked ribbon. They're drawn as outlines, so they look the same everywhere with nothing to install.
+- **Its own lettering**: the notes on the board are written in three pens drawn for Pinboard: a leaning ballpoint, a chisel marker and a typewriter with an inked ribbon. They're drawn as outlines, so they look the same everywhere with nothing to install. The fonts and the scripts that make them are in [pinboard-fonts](https://github.com/zjlgdx/pinboard-fonts), free to use under the OFL.
 - **The strip**: taped to the cork at all four corners, with a faint speckle and a mug ring near the foot. Words stay real text, so they can be selected and links work.
 - **Light mode**: warm cork and cream paper, ink-blue accents.
 - **Dark mode**: the same board under a desk lamp, with string lights that softly twinkle.
