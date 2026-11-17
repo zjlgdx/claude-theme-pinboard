@@ -1,0 +1,5 @@
+{
+  "name": "pinboard",
+  "owner": { "name": "zjlgdx" },
+  "plugins": [{ "name": "pinboard", "source": "./" }]
+}

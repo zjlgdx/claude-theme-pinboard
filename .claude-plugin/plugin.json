@@ -1,0 +1,6 @@
+{
+  "name": "pinboard",
+  "version": "0.1.0",
+  "description": "Pinboard: a hand-made cork board of pinned paper scraps behind the conversation, cream by day and lamp-lit by night, with string lights that run while Claude works.",
+  "types": "./types/index.d.ts"
+}
